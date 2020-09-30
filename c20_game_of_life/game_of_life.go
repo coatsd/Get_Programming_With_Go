@@ -1,3 +1,4 @@
+// This is the Game of Life!
 package main
 
 import (
