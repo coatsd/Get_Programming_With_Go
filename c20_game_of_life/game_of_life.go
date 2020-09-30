@@ -117,7 +117,7 @@ func (u universe) willLive(x int, y int) bool {
 
 func main() {
 	const (
-		width = 10
+		width = 20
 		height = 10
 	)
 
