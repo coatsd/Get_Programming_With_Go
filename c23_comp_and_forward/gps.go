@@ -50,11 +50,11 @@ func (x gps) printDis() {
 
 type rover struct {
 	name string
-	objective gps
+	gps
 }
 
 func (r rover) message() {
-	r.objective.printDis()
+	r.printDis()
 }
 
 func gpsTests() {
@@ -73,13 +73,15 @@ func gpsTests() {
 	}
 
 	fmt.Println("GPS Tests:")
+	// because gps is embedded, it forwards the printDis call to the embedded
+	// gps object.
 	gpsTest.printDis()
 }
 
 func roverTests() {
 	r := rover{
-		name: "curiosity",
-		objective: gps{
+		"curiosity",
+		gps{
 			curr: location{
 				name: "bradbury landing",
 				lat: coordinate{d: 4.0, m: 35.0, s: 22.2, h: 'S',},
