@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math"
 )
 
 type coordinate struct {
@@ -31,22 +32,74 @@ type world struct {
 	radius float64
 }
 
-func (w world) distance(l1, l2 location) float64 {
-	s1, c1 := math.Sincos(l1.lat.toRadius())
-	s2, c2 := math.Sincos(l2.lat.toRadius())
-	clong := math.Cos(l1.long.toRadius() - l2.long.toRadius())
-	return w.radius * math.Acos(s1 * s2 + c1 * c2 * clong)
-}
-
-func (w world) printDis(l1, l2 location) {
-	fmt.Printf("the distance between %v and %v is %v\n", l1.name, l2.name, w.distance(l1, l2))
-}
-
 type gps struct {
 	curr, dest location
 	w world
 }
 
+func (x gps) distance() float64 {
+	s1, c1 := math.Sincos(x.curr.lat.toRadius())
+	s2, c2 := math.Sincos(x.dest.lat.toRadius())
+	clong := math.Cos(x.curr.long.toRadius() - x.dest.long.toRadius())
+	return x.w.radius * math.Acos(s1 * s2 + c1 * c2 * clong)
+}
+
+func (x gps) printDis() {
+	fmt.Printf("the distance between %v and %v is %v kilometers\n", x.curr.name, x.dest.name, x.distance())
+}
+
+type rover struct {
+	name string
+	objective gps
+}
+
+func (r rover) message() {
+	r.objective.printDis()
+}
+
+func gpsTests() {
+	gpsTest := gps{
+		curr: location{
+			name: "you",
+			lat: coordinate{d: 51.0, m: 30.0, h: 'N',},
+			long: coordinate{d: 0.0, m: 8.0, h: 'W',},
+		},
+		dest: location{
+			name: "paris",
+			lat: coordinate{d: 48.0, m: 51.0, h: 'N',},
+			long: coordinate{d: 2.0, m: 21.0, h: 'E',},
+		},
+		w: world{6371.0},
+	}
+
+	fmt.Println("GPS Tests:")
+	gpsTest.printDis()
+}
+
+func roverTests() {
+	r := rover{
+		name: "curiosity",
+		objective: gps{
+			curr: location{
+				name: "bradbury landing",
+				lat: coordinate{d: 4.0, m: 35.0, s: 22.2, h: 'S',},
+				long: coordinate{d: 137.0, m: 26.0, s: 30.1, h: 'E',},
+			},
+			dest: location{
+				name: "elysium planitia",
+				lat: coordinate{d: 4.0, m: 35.0, s: 0.0, h: 'N',},
+				long: coordinate{d: 135.0, m: 54.0, s: 0.0, h: 'E',},
+			},
+			w: world{3389.5},
+		},
+	}
+
+	fmt.Println("Rover Tests:")
+	r.message()
+}
+
 func main() {
-	
+	gpsTests()
+	fmt.Printf("\n")
+	roverTests()
 }
