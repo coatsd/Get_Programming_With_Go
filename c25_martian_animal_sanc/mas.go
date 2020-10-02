@@ -6,18 +6,12 @@ import (
 	"reflect"
 )
 
-type activities interface {
+type activity interface {
 	move() string
-	eat() string
+	eat(food) string
 }
 
-type food struct {
-	name string
-}
-
-func (f food) String() string {
-	return f.name
-}
+type food string
 
 type marsAnimal struct {
 	kind, name string
@@ -28,7 +22,7 @@ func (ma marsAnimal) String() string {
 }
 
 func (ma marsAnimal) move() string {
-	dist := rand.Intn(5)
+	dist := rand.Intn(5) + 1
 	return fmt.Sprintf("%v walked %v meters.", ma, dist)
 }
 
@@ -72,10 +66,64 @@ func newPelpine(name string) pelpine {
 	return p
 }
 
+type report struct {
+	hour int
+	action string
+}
+
+func (r report) String() string {
+	hour, ampm := convertHour(r.hour)
+	return fmt.Sprintf("At %v %v, %v", hour, ampm, r.action)
+}
+
+func convertHour(hour int) (int, string) {
+	if hour > 12 {
+		return hour - 12, "PM"
+	} else if hour == 0 {
+		return hour + 12, "AM"
+	} else if hour == 12 {
+		return hour, "PM"
+	}
+	return hour, "AM"
+}
+
+func generateReports(start, runTime int, a []activity, f []food) []report {
+	reports := make([]report, 0, 1)
+	for i := 0; i < runTime; i++ {
+		var r report
+		start %= 24
+		r.hour = start
+		animal := a[rand.Intn(len(a))]
+		if start < 7 || start > 22 {
+			r.action = "Everyone is sound asleep."
+		} else {
+			if rand.Intn(2) == 1 {
+				r.action = animal.move()
+			} else {
+				r.action = animal.eat(f[rand.Intn(len(f))])
+			}	
+		}
+		reports = append(reports, r)
+		start++
+	}
+	return reports
+}
+
 func main() {
+	const startHour int = 8
+	const runTime int = 72
 	b := newBoarst("Molly")
 	g := newGrog("Greg")
 	p := newPelpine("Sarah")
 
+	animals := []activity{b, g, p,}
+	foods := []food{"red carrot", "marswheat", "space pear"}
+
 	fmt.Printf("Created %v, %v, and %v", b, g, p)
+
+	reports := generateReports(startHour, runTime, animals, foods)
+
+	for _, r := range reports {
+		fmt.Println(r)
+	}
 }
