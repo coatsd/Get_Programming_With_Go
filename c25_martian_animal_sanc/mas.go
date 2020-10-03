@@ -101,7 +101,7 @@ func generateReports(start, runTime int, a []activity, f []food) []report {
 				r.action = animal.move()
 			} else {
 				r.action = animal.eat(f[rand.Intn(len(f))])
-			}	
+			}
 		}
 		reports = append(reports, r)
 		start++
