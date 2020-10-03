@@ -12,7 +12,7 @@ func (t turtle) String() string {
 	return fmt.Sprintf("X: %v, Y: %v", t.x, t.y)
 }
 
-func move(x, y int, t *turtle) {
+func (t *turtle) move(x, y int) {
 	t.x += x
 	t.y += y
 }
@@ -20,6 +20,6 @@ func move(x, y int, t *turtle) {
 func main() {
 	t := turtle{2, 2}
 	fmt.Println(t)
-	move(1, 3, &t)
+	t.move(1, 3)
 	fmt.Println(t)
 }
