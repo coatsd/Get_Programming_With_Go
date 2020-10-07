@@ -10,11 +10,11 @@ type universe [][]bool
 
 // Creates a new instance of a universe - every cell is initialized to false
 func newUniverse(height int, width int) universe {
-	h := make([][]bool, height)
-	for w, _ := range h {
-		h[w] = make([]bool, width)
+	u := make([][]bool, height)
+	for w := range u {
+		u[w] = make([]bool, width)
 	}
-	return h
+	return u
 }
 
 // prints out a universe's 2d array, using 1 for true and 0 for false
@@ -65,7 +65,7 @@ func (u universe) seedUniverse() {
 }
 
 // If x or y are out of range, it loops the coordinate to the other side
-func (u universe) treatCoord(y int, x int) (int, int) {
+func (u universe) treatCoord(y, x int) (int, int) {
 	if y >= len(u) {
 		y = y % len(u)
 	} else if y < 0 {
@@ -80,12 +80,12 @@ func (u universe) treatCoord(y int, x int) (int, int) {
 }
 
 // tests a cell to see if it is alive (set to true)
-func (u universe) isAlive(y int, x int) bool {
+func (u universe) isAlive(y, x int) bool {
 	return u[y][x]
 }
 
 // calculates how many cells around a coordinate has a living cell
-func (u universe) neighbors(y int, x int) int {
+func (u universe) neighbors(y, x int) int {
 	var n int = 0
 	var ty, tx int
 	for h := -1; h < 2; h++ {
@@ -102,7 +102,7 @@ func (u universe) neighbors(y int, x int) int {
 }
 
 // calculates if a cell will continue to live, or if a cell will start living
-func (u universe) willLive(y int, x int) bool {
+func (u universe) willLive(y, x int) bool {
 	var n int = u.neighbors(y, x)
 	if u.isAlive(y, x) {
 		if n < 2 || n > 3 {
@@ -134,4 +134,5 @@ func main() {
 	}
 	fmt.Printf("\nNext Generation:\n")
 	nextU.printUniverseInfo()
+	initU = nextU
 }
