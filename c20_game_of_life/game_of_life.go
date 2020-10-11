@@ -39,7 +39,7 @@ func (u universe) calcPopPercent() float64 {
 	var liveCells int
 	for _, h := range u	{
 		totalCells += len(h)
-		for w, _ := range h {
+		for w := range h {
 			if h[w] == true {
 				liveCells++
 			}
