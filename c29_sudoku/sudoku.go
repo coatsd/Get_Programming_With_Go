@@ -23,16 +23,23 @@ func (sg *sudokuError) Error() string {
 }
 
 type sudokuGrid struct {
-	initState, currState [9][9]int8
+	initState [9][9]bool
+	currState [9][9]int8
 }
 
 func NewSudoku(grid [9][9]int8) sudokuGrid {
-	return sg{initState: grid, currState: grid,}
+	var init [9][9]bool
+	for h := range grid {
+		for w := range grid[h] {
+			init[h][w] = grid[h][w] == 0
+		}
+	}
+	return sg{initState: init, currState: grid,}
 }
 
-func (sg *sudokuGrid) CanPlace(y,x int, v int8) (bool, sudokuError) {
+func (sg *sudokuGrid) CanPlace(y,x int, v int8) sudokuError {
 	if x >= 0 && x < 9 && y >= 0 && y < 9 {
-		if sg.initState[y][x] == 0 {
+		if sg.initState[y][x] {
 			return true, nil
 		} else {
 			return false, NewError("Cannot replace values from the initial puzzle state", y, x, v)
@@ -42,7 +49,7 @@ func (sg *sudokuGrid) CanPlace(y,x int, v int8) (bool, sudokuError) {
 	}
 }
 
-func (sg *sudokuGrid) ValidateGrid() (bool, sudokuError) {
+func (sg *sudokuGrid) ValidateGrid() sudokuError {
 	
 }
 
@@ -54,8 +61,10 @@ func (sg *sudokuGrid) PlaceNum(y,x int, v int8) error {
 	return err
 }
 
-func (sg *sudokuGrid) RemoveNum(num int8) error {
+func (sg *sudokuGrid) RemoveNum(y,x int, num int8) error {
+	if sg.initState[y][x] == 0 {
 
+	}
 }
 
 func HandleError(err error) {
