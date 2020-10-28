@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"error"
+	"os"
 )
 
 type sudokuError struct {
@@ -17,7 +18,7 @@ func NewError(e string, y,x int, v int8) sudokuError {
 
 func (sg *sudokuError) Error() string {
 	if sg.x > -1 {
-		return fmt.Sprintf("Error: %v, Coords: %v, %v, Value: %v", sg.Err, sg.x, sg.y, sg.v)
+		return fmt.Sprintf("Error: %v, Coords: %v, %v, Value: %v", sg.err, sg.x, sg.y, sg.v)
 	}
 	return fmt.Sprintf("Error: %v", sg.err)
 }
@@ -49,10 +50,6 @@ func (sg *sudokuGrid) CanPlace(y,x int, v int8) sudokuError {
 	}
 }
 
-func (sg *sudokuGrid) ValidateGrid() sudokuError {
-	
-}
-
 func (sg *sudokuGrid) PlaceNum(y,x int, v int8) error {
 	can, err := CanPlace(y, x, v)
 	if can {
@@ -61,15 +58,18 @@ func (sg *sudokuGrid) PlaceNum(y,x int, v int8) error {
 	return err
 }
 
-func (sg *sudokuGrid) RemoveNum(y,x int, num int8) error {
-	if sg.initState[y][x] == 0 {
-
+func (sg *sudokuGrid) RemoveNum(y,x int) error {
+	if sg.initState[y][x] {
+		sg.currState = 0
 	}
 }
 
 func HandleError(err error) {
 	if e, ok := err.(sudokuError); ok {
-
+		fmt.Printf(e)
+	} else {
+		fmt.Printf(e)
+		os.exit(1)
 	}
 }
 
