@@ -88,7 +88,9 @@ func (sg *sudokuGrid) RemoveNum(y,x int) *sudokuError {
 }
 
 // The third return value is for debugging purposes. It indicates which arm of
-// the function was returned. See RunTests() for details.
+// the function returned the value. See RunTests() for details.
+// This could potentially be broken up into individual methods for each rule,
+// i.e. same num on x axis, same num on y, same num on 3 x 3, etc.
 func (sg *sudokuGrid) CheckCoord(y,x int) (bool, error, int8) {
 	if isValidCoord(y,x) {
 		cv := sg.currState[y][x]
@@ -184,6 +186,7 @@ func RunTests() {
 		fmt.Println("Something went wrong while testing out of range errors in CheckCoord")
 	}
 
+	// This portion tests the logic of the various checks in CheckCoord.
 	var pFunc = func(p bool, out string, want, got int8) {
 		fmt.Printf("Testing " + out + ": Test ")
 		if p && want == got {
