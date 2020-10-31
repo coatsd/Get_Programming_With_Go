@@ -140,6 +140,8 @@ func main() {
 }
 
 func RunTests() {
+	fmt.Println("Initializing tests with static puzzle...")
+
 	sg := NewSudoku([9][9]int8{
 		{5,3,0,0,7,0,0,0,0},
 		{6,0,0,1,9,5,0,0,0},
