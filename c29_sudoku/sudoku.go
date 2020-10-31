@@ -87,37 +87,42 @@ func (sg *sudokuGrid) RemoveNum(y,x int) *sudokuError {
 	return errPt
 }
 
-func (sg *sudokuGrid) CheckCoord(y,x int) (bool, error) {
+// The third return value is for debugging purposes. It indicates which arm of
+// the function was returned. See RunTests() for details.
+func (sg *sudokuGrid) CheckCoord(y,x int) (bool, error, int8) {
 	if isValidCoord(y,x) {
-		if sg.initState[y][x] {
-			return true, nil
+		cv := sg.currState[y][x]
+		if !sg.initState[y][x] {
+			return true, nil, 1
 		}
-		if sg.currState[y][x] == 0 {
-			return false, nil
+		if cv == 0 {
+			return false, nil, 2
 		}
 		for h := range sg.currState {
-			if sg.currState[h][x] == sg.currState[y][x] {
-				return false, nil
+			if sg.currState[h][x] == cv && h != y {
+				return false, nil, 3
 			}
 		}
 		for w := range sg.currState[y] {
-			if sg.currState[y][w] == sg.currState[y][x] {
-				return false, nil
+			if sg.currState[y][w] == cv && w != x {
+				return false, nil, 4
 			}
 		}
 		var beginH int = y - (y % 3)
 		var beginW int = x - (x % 3)
 		for h := beginH; h < beginH + 3; h++ {
 			for w := beginW; w < beginW + 3; w++ {
-				if sg.currState[h][w] == sg.currState[y][x] {
-					return false, nil
+				if y != h || x != w {
+					if sg.currState[h][w] == cv {
+						return false, nil, 5
+					}
 				}
 			}
 		}
 	} else {
-		return false, errors.New(fmt.Sprintf("Index out of range ([%v][%v])\n", y, x))
+		return false, errors.New(fmt.Sprintf("Index out of range ([%v][%v])\n", y, x)), 6
 	}
-	return true, nil
+	return true, nil, 7
 }
 
 func HandleError(err error) {
@@ -129,6 +134,10 @@ func HandleError(err error) {
 }
 
 func main() {
+	RunTests()
+}
+
+func RunTests() {
 	sg := NewSudoku([9][9]int8{
 		{5,3,0,0,7,0,0,0,0},
 		{6,0,0,1,9,5,0,0,0},
@@ -152,7 +161,7 @@ func main() {
 	}
 
 	fmt.Println("Testing error handling with invalid sudoku puzzle value:")
-	if err := sg.PlaceNum(0,2,1); err != nil {
+	if err := sg.PlaceNum(0,2,10); err != nil {
 		HandleError(err)
 	} else {
 		fmt.Println("Something went wrong while testing invalid sudoku input in PlaceNum")
@@ -169,32 +178,41 @@ func main() {
 	sg.PrintCurrState()
 
 	fmt.Println("Testing the Error handling in CheckCoord method (should return index out of range):")
-	if _, err := sg.CheckCoord(9,9); err != nil {
+	if _, err, _ := sg.CheckCoord(9,9); err != nil {
 		HandleError(err)
 	} else {
 		fmt.Println("Something went wrong while testing out of range errors in CheckCoord")
 	}
 
-	var pFunc = func(p bool, out string) {
+	var pFunc = func(p bool, out string, want, got int8) {
 		fmt.Printf("Testing " + out + ": Test ")
-		if p {
+		if p && want == got {
 			fmt.Printf("Success\n")
 		} else {
 			fmt.Printf("Fail\n")
 		}
 	}
-	p1, _ := sg.CheckCoord(0,0)
-	pFunc(p1, "if preexisting sudoku values pass CheckCoord")
-	p2, _ := sg.CheckCoord(0,2)
-	pFunc(!p2, "if empty values in puzzle fail CheckCoord")
+	p1, _, got1 := sg.CheckCoord(0,0)
+	pFunc(p1, "if preexisting sudoku values pass CheckCoord", 1, got1)
+
+	p2, _, got2 := sg.CheckCoord(0,2)
+	pFunc(!p2, "if empty values in puzzle fail CheckCoord", 2, got2)
+
 	sg.PlaceNum(0,2,7)
-	p3, _ := sg.CheckCoord(0,2)
-	pFunc(!p3, "if wrong value placed in puzzle failed to pass CheckCoord (x axis)")
-	sg.PlaceNum(1,1,6)
-	p4, _ := sg.CheckCoord(0,2)
-	pFunc(!p4, "if wrong value placed in puzzle failed to pass CheckCoord (y axis)")
+	p3, _, got4 := sg.CheckCoord(0,2)
+	pFunc(!p3, "if wrong value placed in puzzle failed to pass CheckCoord (x axis)", 4, got4)
+
+	sg.PlaceNum(1,1,9)
+	p4, _, got3 := sg.CheckCoord(1,1)
+	pFunc(!p4, "if wrong value placed in puzzle failed to pass CheckCoord (y axis)", 3, got3)
+
 	sg.RemoveNum(0,2)
+	sg.PlaceNum(1,1,8)
+	p5, _, got5 := sg.CheckCoord(1,1)
+	pFunc(!p5, "if wrong value placed in puzzle failed to pass CheckCoord (3 x 3)", 5, got5)
+
+	sg.RemoveNum(1,1)
 	sg.PlaceNum(1,1,4)
-	p5, _ := sg.CheckCoord(1,1)
-	pFunc(!p5, "if wrong value placed in puzzle failed to pass CheckCoord (3 x 3)")
+	p6, _, got7 := sg.CheckCoord(1,1)
+	pFunc(p6, "if (potentially) correct value in puzzle passes CheckCoord.", 7, got7)
 }
