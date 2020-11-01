@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	numPt := flag.Int("listing", 1, "Run a particular listing")
+	numPt := flag.Int("v", 2, "Run a particular listing")
 
 	flag.Parse()
 
@@ -49,6 +49,8 @@ func verTwo() {
 	}
 
 	c := make(chan int)
+
+	fmt.Println("Running code from listing 30.4")
 
 	// This loop spins up the goroutines.
 	for i := 0; i < 5; i++ {
