@@ -9,6 +9,9 @@ import (
 )
 
 func main() {
+	// creates a flag for command line args, which determines what code to run.
+	// The flag is -v, the default value is 0, and the last is a description of
+	// the flag itself.
 	numPt := flag.Int("v", 0, "Run a particular listing version")
 
 	flag.Parse()
@@ -145,7 +148,7 @@ func verFour() {
 // code from listing 30.11-30.14 describes use of the close function to close a
 // channel when the channel is no longer in use. If a channel is expected to be
 // closed at any point during the program, you need to check if the channel has
-// closed. This is done with the second return value of a channel receiver.
+// closed. This is done with the second value returned from a channel receiver.
 // Example: value, isClosed := <-channel
 func verFive() {
 	// Pass a string "downstream" (ds)
