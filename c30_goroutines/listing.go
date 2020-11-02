@@ -5,10 +5,11 @@ import (
 	"time"
 	"flag"
 	"math/rand"
+	"strings"
 )
 
 func main() {
-	numPt := flag.Int("v", 2, "Run a particular listing version")
+	numPt := flag.Int("v", 0, "Run a particular listing version")
 
 	flag.Parse()
 
@@ -19,8 +20,12 @@ func main() {
 		verTwo()
 	case 3:
 		verThree()
+	case 4:
+		verFour()
+	case 5:
+		verFive()
 	default:
-		verThree()
+		verFive()
 	}
 }
 
@@ -67,9 +72,9 @@ func verTwo() {
 	}
 }
 
-// code from listing 30.5 describes use of select statements, which run when a
-// value is received in one of the channels in a select case. It also describes
-// use of the time.After method to set a timeout.
+// code from listing 30.5-30.6 describes use of select statements, which run
+// when a value is received in one of the channels in a select case. It also
+// describes use of the time.After method to set a timeout.
 func verThree() {
 	sleepyGopher := func(id int, c chan int) {
 		time.Sleep(time.Duration(rand.Intn(4000)) * time.Millisecond)
@@ -93,4 +98,90 @@ func verThree() {
 			return
 		}
 	}
+}
+
+// code from listing 30.7-30.10 describes use of channels in multiple functions.
+// These functions are called "pipelines", which process data coming from other
+// sources. verFour uses a "sentinel value", or zero value of the datatype to
+// indicate the end of the stream.
+func verFour() {
+	// Pass a string "downstream" (ds)
+	sourceGopher := func(ds chan string) {
+		for _, v := range []string{"hello world", "a bad apple", "goodbye all"} {
+			ds <- v
+		}
+		ds <- ""
+	}
+	// Receives a string from "upstream" (us), processes out "bad" strings, then
+	// continues to pass other items "downstream"
+	filterGopher := func(us, ds chan string) {
+		for {
+			item := <-us
+			if item == "" {
+				ds <- item
+				return
+			}
+			if !strings.Contains(item, "bad") {
+				ds <- item
+			}
+		}
+	}
+	// Receives an item from upstream and prints the item.
+	printGopher := func(us chan string) {
+		for {
+			v := <-us
+			if v == "" {
+				return
+			}
+			fmt.Println(v)
+		}
+	}
+
+	c1 := make(chan string)
+	c2 := make(chan string)
+	go sourceGopher(c1)
+	go filterGopher(c1, c2)
+	printGopher(c2)
+}
+
+// code from listing 30.11-30.14 describes use of the close function to close a
+// channel when the channel is no longer in use. If a channel is expected to be
+// closed at any point during the program, you need to check if the channel has
+// closed. This is done with the second return value of a channel receiver.
+// Example: value, isClosed := <-channel
+func verFive() {
+	// Pass a string "downstream" (ds)
+	sourceGopher := func(ds chan string) {
+		for _, v := range []string{"hello world", "a bad apple", "goodbye all"} {
+			ds <- v
+		}
+		close(ds)
+	}
+	// Receives a string from "upstream" (us), processes out "bad" strings, then
+	// continues to pass other items "downstream"
+	filterGopher := func(us, ds chan string) {
+		for {
+			item, ok := <-us
+			if !ok {
+				close(ds)
+				return
+			}
+			if !strings.Contains(item, "bad") {
+				ds <- item
+			}
+		}
+		close(ds)
+	}
+	// Receives an item from upstream and prints the item.
+	printGopher := func(us chan string) {
+		for v := range us {
+			fmt.Println(v)
+		}
+	}
+
+	c1 := make(chan string)
+	c2 := make(chan string)
+	go sourceGopher(c1)
+	go filterGopher(c1, c2)
+	printGopher(c2)
 }
