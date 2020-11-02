@@ -22,8 +22,6 @@ func main() {
 		verThree()
 	case 4:
 		verFour()
-	case 5:
-		verFive()
 	default:
 		verFive()
 	}
