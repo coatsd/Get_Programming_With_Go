@@ -17,7 +17,7 @@ func (v *Visited) VisitLink(url string) int {
 	c++
 	v.visited[url] = c
 	return c
-} 
+}
 
 func main() {
 	

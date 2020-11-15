@@ -13,7 +13,7 @@ func printWorker() {
 		select {
 		case <-next:
 			n++
-			fmt.Println("n")
+			fmt.Println(n)
 			next = time.After(time.Second)
 		}
 	}
