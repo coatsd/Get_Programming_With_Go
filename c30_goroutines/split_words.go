@@ -2,6 +2,9 @@ package main
 
 import (
 	"fmt"
+	"sync"
+	"time"
+	"math/rand"
 	"strings"
 )
 
@@ -23,47 +26,41 @@ func (sc *stringChan) ReadAll() {
 	close(sc.c)
 }
 
-func printChan(c chan string) {
-	for {
-		v, ok := <-c
-		if !ok {
-			break
-		}
-		fmt.Println(v)
-	}
-}
-
-func makeAndSend(s string, scChan chan *stringChan, done chan bool) {
-	scChan <- newStringChan(s)
-	done <- true
-}
-
 func source(scChan chan *stringChan) {
-	done := make(chan bool)
-	counter := 0
+	var wg sync.WaitGroup
 	stringVals := []string{"Hello World", "Gopher Power", "Good Day Sir"}
+	wg.Add(len(stringVals))
 	for _, v := range stringVals {
-		go makeAndSend(v, scChan, done)
+		go func(s string, scChan chan *stringChan, wg *sync.WaitGroup) {
+			defer wg.Done()
+			scChan <- newStringChan(s)	
+		}(v, scChan, &wg)
 	}
-	for _, v := range stringVals {
-		if <-done {
-			counter++
-		}
-		fmt.Println("Made chan for: ", v)
-	}
-	if counter == len(stringVals) {
-		close(scChan)	
-	}
+	wg.Wait()
+	close(scChan)
 }
 
 func readSCs(us chan *stringChan) {
 	for {
-		sc, ok := <-us
+		sc, ok := <-us 
 		if !ok {
 			break
 		}
+		var wg sync.WaitGroup
+		wg.Add(cap(sc.c))
 		go sc.ReadAll()
-		printChan(sc.c)
+		go func(c chan string, wg *sync.WaitGroup) {
+			for {
+				v, ok := <-c
+				if !ok {
+					break
+				}
+				defer wg.Done()
+				time.Sleep(time.Duration(rand.Intn(2000)) * time.Millisecond)
+				fmt.Println(v)
+			}
+		}(sc.c, &wg)
+		wg.Wait()
 	}
 }
 
